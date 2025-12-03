@@ -16,12 +16,12 @@ router.register("loans", loans.LoanViewSet, basename="loan")
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("bootstrap/version", bootstrap.VersionView.as_view()),
-    # JWT endpoints
+
     path("api/auth/login/", auth.CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/register/", auth.RegisterView.as_view(), name="auth_register"),
     path("api/auth/me/", auth.ProfileView.as_view(), name="auth_profile"),
-    # Legacy compatibility
+
     path("token/", auth.CustomTokenObtainPairView.as_view(), name="token_legacy"),
     path("api/reports/occupancy/", reports.OccupancyReportView.as_view(), name="report_occupancy"),
     path("api/reports/equipment-usage/",reports.EquipmentUsageReportView.as_view(), name="report_equipment_usage",),

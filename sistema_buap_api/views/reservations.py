@@ -58,8 +58,6 @@ class ReservationViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        print(f"🔍 Datos de reserva recibidos: {self.request.data}")
-        print(f"🔍 Usuario: {self.request.user}")
         request_user = self.request.user
         target_user = serializer.validated_data.get("user", request_user)
         if request_user.role == models.User.UserRole.ESTUDIANTE:
@@ -137,7 +135,9 @@ class ReservationViewSet(viewsets.ModelViewSet):
             return Response({"detail": "No autorizado."}, status=status.HTTP_403_FORBIDDEN)
         motivo = request.data.get("motivo", "")
         reservacion.motivo = motivo
+        razonCancelacion = request.data.get("razonCancelacion", "")
+        reservacion.razonCancelacion = razonCancelacion
         self._set_status(reservacion, models.Reservacion.ReservacionStatus.CANCELADO)
-        reservacion.save(update_fields=["motivo", "status", "updated_at"])
+        reservacion.save(update_fields=["motivo", "razonCancelacion", "status", "updated_at"])
         serializer = self.get_serializer(reservacion)
         return Response(serializer.data)

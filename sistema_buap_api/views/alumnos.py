@@ -83,7 +83,7 @@ class AlumnosView(generics.CreateAPIView):
             #Create a profile for the user
             alumno = Alumnos.objects.create(user=user,
                                             matricula= request.data["matricula"],
-                                            departamento= request.data["departamento"],
+                                            carrera= request.data["carrera"],
                                             creation= datetime.now())
             alumno.save()
 

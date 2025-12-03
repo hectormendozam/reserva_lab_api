@@ -16,34 +16,40 @@ class BaseReportView(APIView):
 
 class OccupancyReportView(BaseReportView):
     def get(self, request, *args, **kwargs):
-        periodo = request.query_params.get("periodo")
-        fechaInicio, fechaFin, period_label = _parse_period(periodo)
+        # Filtros de query params
+        date_from = request.query_params.get("date_from")
+        date_to = request.query_params.get("date_to")
+        lab_id = request.query_params.get("lab")
+        status = request.query_params.get("status")
+        
         reservaciones = models.Reservacion.objects.filter(
-            status=models.Reservacion.ReservacionStatus.APROBADO,
-            fecha__range=(fechaInicio, fechaFin),
+            status=models.Reservacion.ReservacionStatus.APROBADO
         )
+        
+        if date_from:
+            reservaciones = reservaciones.filter(fecha__gte=date_from)
+        if date_to:
+            reservaciones = reservaciones.filter(fecha__lte=date_to)
+        if lab_id:
+            reservaciones = reservaciones.filter(lab_id=lab_id)
+        if status:
+            reservaciones = reservaciones.filter(status=status)
+        
         data = []
-        diasTotales = (fechaFin - fechaInicio).days + 1
-        capacidad_total_horas = max(diasTotales * 12, 1)
-        for lab in models.Lab.objects.all():
-            reservacionesLab = reservaciones.filter(lab=lab).values(
-                "fechaInicio", "fechaFin"
-            )
-            horas_reservadas = 0
-            for item in reservacionesLab:
-                delta = datetime.combine(datetime.min, item["fechaFin"]) - datetime.combine(
-                    datetime.min, item["fechaInicio"]
-                )
-                horas_reservadas += delta.total_seconds() / 3600
-            tasa_ocupacion = min(horas_reservadas / capacidad_total_horas, 1)
-            data.append(
-                {
-                    "idLab": lab.id,
-                    "nombreLab": lab.name,
-                    "periodo": period_label,
-                    "tasa_ocupacion": round(tasa_ocupacion, 4),
-                }
-            )
+        for reserva in reservaciones:
+            hora_inicio = datetime.combine(datetime.min, reserva.horaInicio)
+            hora_fin = datetime.combine(datetime.min, reserva.horaFin)
+            delta = hora_fin - hora_inicio
+            horas_reservadas = delta.total_seconds() / 3600
+            
+            data.append({
+                "labId": reserva.lab.id,
+                "nombreLab": reserva.lab.nombre,  
+                "fecha": reserva.fecha.strftime("%Y-%m-%d"),
+                "horasReservadas": round(horas_reservadas, 2),
+                "estadoReserva": reserva.status
+            })
+        
         return Response(data)
 
 

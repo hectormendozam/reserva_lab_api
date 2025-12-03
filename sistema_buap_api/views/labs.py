@@ -19,6 +19,4 @@ class LabViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
     
     def create(self, request, *args, **kwargs):
-        print(f"🔍 Intento de crear lab - Usuario: {request.user.email}, Rol: {request.user.role}")
-        print(f"🔍 Datos recibidos: {request.data}")
         return super().create(request, *args, **kwargs)

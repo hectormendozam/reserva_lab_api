@@ -7,8 +7,8 @@ from sistema_buap_api import models
 @admin.register(models.User)
 class UserAdmin(DjangoUserAdmin):
 	ordering = ("email",)
-	list_display = ("email", "first_name", "last_name", "matricula", "role", "is_active")
-	search_fields = ("email", "first_name", "last_name", "matricula")
+	list_display = ("email", "first_name", "last_name", "matricula", "departamento", "carrera","role", "is_active")
+	search_fields = ("email", "first_name", "last_name", "matricula", "departamento", "carrera")
 	fieldsets = (
 		(None, {"fields": ("email", "password", "matricula", "role")}),
 		("Permisos", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")} ),

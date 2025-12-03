@@ -8,7 +8,7 @@ from sistema_buap_api import models, permissions as custom_permissions, serializ
 class UserViewSet(viewsets.ModelViewSet):
     queryset = models.User.objects.all().order_by("id")
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ["first_name", "last_name", "email", "matricula"]
+    search_fields = ["first_name", "last_name", "email", "matricula", "departamento", "carrera"]
     filterset_fields = ["role"]
 
     def get_permissions(self):

@@ -15,6 +15,8 @@ class UserSerializer(serializers.ModelSerializer):
             "email",
             "matricula",
             "role",
+            "departamento",
+            "carrera",
             "password",
         )
         read_only_fields = ("id",)
@@ -23,18 +25,19 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name": {"required": True},
             "email": {"required": True},
             "matricula": {"required": True},
+            "departamento": {"required": False},
+            "carrera": {"required": False},
         }
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)
-        # Enforce role-based fields
         role = validated_data.get("role", models.User.UserRole.ESTUDIANTE)
+        
         if role == models.User.UserRole.ESTUDIANTE:
-            # estudiante: carrera permitido; departamento inválido
-            validated_data["departamento"] = ""
+            validated_data.pop("departamento", None)
         else:
-            # tecnico/admin: departamento permitido; carrera inválido
-            validated_data["carrera"] = ""
+            validated_data.pop("carrera", None)
+        
         user = models.User(**validated_data)
         if password:
             user.set_password(password)
@@ -43,12 +46,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         password = validated_data.pop("password", None)
-        # Enforce role-based fields on update
         role = validated_data.get("role", instance.role)
+        
         if role == models.User.UserRole.ESTUDIANTE:
-            validated_data["departamento"] = ""
+            validated_data.pop("departamento", None)
         else:
-            validated_data["carrera"] = ""
+            validated_data.pop("carrera", None)
+        
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
@@ -66,26 +70,30 @@ class UserRegistrationSerializer(UserSerializer):
     )
 
     class Meta(UserSerializer.Meta):
+        model = models.User
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "matricula",
+            "role",
+            "departamento",
+            "carrera",
+            "password",
+        )
         extra_kwargs = {
             "first_name": {"required": True},
             "last_name": {"required": True},
             "email": {"required": True},
             "matricula": {"required": True},
+            "departamento": {"required": False, "allow_blank": True},
+            "carrera": {"required": False, "allow_blank": True},
         }
 
     def validate(self, attrs):
-        # Rol por defecto: ESTUDIANTE
         role = attrs.get("role", models.User.UserRole.ESTUDIANTE)
         attrs["role"] = role
-        # Regla de negocio: carrera solo para ESTUDIANTE; departamento solo para TECNICO/ADMIN
-        if role == models.User.UserRole.ESTUDIANTE:
-            # limpiar departamento si viene
-            if "departamento" in attrs:
-                attrs["departamento"] = ""
-        else:
-            # limpiar carrera si viene
-            if "carrera" in attrs:
-                attrs["carrera"] = ""
         return attrs
 
 
@@ -140,6 +148,7 @@ class ReservacionSerializer(serializers.ModelSerializer):
             "horaInicio",
             "horaFin",
             "motivo",
+            "razonCancelacion",
             "status",
             "created_at",
             "updated_at",
